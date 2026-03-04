@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+# .ansible-lint-ignore
+
+# https://ansible.readthedocs.io/projects/lint/configuring/#ignoring-rules-for-entire-files

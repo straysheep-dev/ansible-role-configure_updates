@@ -1,0 +1,59 @@
+---
+# molecule/default/molecule.yml
+# SPDX-License-Identifier: MIT
+#
+# The molecule.yml file configures Molecule itself.
+#
+# Built from the following sources:
+# - https://github.com/geerlingguy/ansible-role-docker/blob/master/molecule/default/molecule.yml
+# - https://ansible.readthedocs.io/projects/molecule/getting-started/#inspecting-the-moleculeyml
+# - https://ansible.readthedocs.io/projects/molecule/guides/systemd-container/#systemd-container
+
+role_name_check: 1
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: ubuntu-latest
+    image: ubuntu:latest
+    command: /sbin/init  # It's critical to include the command here so systemd is PID 1
+    pre_build_image: false
+    cgroupns_mode: host
+    privileged: true
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    dockerfile: docker-configs/dockerfiles-ubuntu/ubuntu-latest.Dockerfile
+  - name: debian-latest
+    image: debian:latest
+    command: /sbin/init  # It's critical to include the command here so systemd is PID 1
+    pre_build_image: false
+    cgroupns_mode: host
+    privileged: true
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    dockerfile: docker-configs/dockerfiles-debian/debian-latest.Dockerfile
+  - name: fedora-latest
+    image: fedora:latest
+    command: /sbin/init  # It's critical to include the command here so systemd is PID 1
+    pre_build_image: false
+    cgroupns_mode: host
+    privileged: true
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    dockerfile: docker-configs/dockerfiles-fedora/fedora-latest.Dockerfile
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+verifier:
+  name: ansible

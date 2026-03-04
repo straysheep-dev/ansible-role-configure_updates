@@ -1,0 +1,25 @@
+# .github/workflows/ansible-lint.yml
+
+# Taken from the following example:
+# https://github.com/ansible/ansible-lint?tab=readme-ov-file#using-ansible-lint-as-a-github-action
+
+name: ansible-lint
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+jobs:
+  build:
+    name: Ansible Lint # Naming the build is important to use it as a status check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v26.2.0 # or version tag instead of 'main'
+        # optional (see below):
+        with:
+          args: ""
+          setup_python: "true"
+          working_directory: ""
+          requirements_file: ""

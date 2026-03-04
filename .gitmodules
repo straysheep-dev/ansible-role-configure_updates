@@ -1,0 +1,4 @@
+[submodule "molecule/default/docker-configs"]
+	path = molecule/default/docker-configs
+	url = git@github.com:straysheep-dev/docker-configs.git
+	branch = main

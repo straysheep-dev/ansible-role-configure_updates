@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: MIT
+# .ansible-lint
+
+# Full list of configuration options:
+# https://ansible.readthedocs.io/projects/lint/configuring/
+
+# Profiles: null, min, basic, moderate, safety, shared, production
+profile: safety
+
+# Shell globs are supported for exclude_paths:
+# - https://github.com/ansible/ansible-lint/pull/1425
+# - https://github.com/ansible/ansible-lint/discussions/1424
+exclude_paths:
+  - .cache/ # implicit unless exclude_paths is defined in config
+  - .git/                     # always ignore
+  - .github/                  # always ignore
+  - "tests/"                  # ignore tests/ folder
+  - molecule/default/converge.yml  # Will fail when the role isn't in your path
+
+# Process the following rules as warnings, and not fatal errors, globally
+warn_list:
+  - yaml[line-length]
+  - package-latest
+  - role-name
+#  - schema[playbook]
+
+# Offline mode disables installation of requirements.yml and schema refreshing
+offline: true
