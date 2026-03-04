@@ -20,7 +20,7 @@ on:
     branches: ["main"]
 defaults:
   run:
-    working-directory: 'role_name'
+    working-directory: 'configure_updates'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          path: role_name
+          path: configure_updates
           submodules: recursive
       - name: Install dependencies
         run: |

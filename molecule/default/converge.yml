@@ -28,4 +28,4 @@
         # msg: "This is the effective test"
         var: ansible_facts['system']
   roles:
-    - role: straysheep_dev.role_name
+    - role: straysheep_dev.configure_updates

@@ -1,3 +1,25 @@
 # SPDX-License-Identifier: MIT
 ---
-# defaults file for role_name
+# defaults file for configure_updates
+
+# Creates a YAML list of update tasks and params we can iterate over
+update_cron_jobs:
+  - name: update-packages
+    script: update-packages.sh
+    enabled: true
+    user: root
+    minute: "0"
+    hour: "3"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+  - name: update-wazuh
+    script: update-wazuh.sh
+    enabled: false
+    user: root
+    minute: "0"
+    hour: "3"
+    day: "*"
+    month: "*"
+    weekday: "*"

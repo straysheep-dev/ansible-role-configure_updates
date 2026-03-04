@@ -1,9 +1,14 @@
-role_name
+configure_updates
 =========
 
-![molecule workflow](https://github.com/straysheep-dev/ansible-role-template/actions/workflows/molecule.yml/badge.svg) ![ansible-lint workflow](https://github.com/straysheep-dev/ansible-role-template/actions/workflows/ansible-lint.yml/badge.svg)
+![molecule workflow](https://github.com/straysheep-dev/ansible-role-configure_updates/actions/workflows/molecule.yml/badge.svg) ![ansible-lint workflow](https://github.com/straysheep-dev/ansible-role-configure_updates/actions/workflows/ansible-lint.yml/badge.svg)
 
-A brief description of the role goes here.
+Installs scheduled tasks and shell scripts that handle various system updates.
+
+This was chosen over using an Anisble controller to ochestrate scheduled updates via [update_packages](), for speed and reliability.
+
+- Running Ansible tasks as one-off state changes on deployed assets often can be handled as-needed
+- The failure rate for something like automating system updates is high, and slower than scheduling this as a local task on the targets
 
 > [!NOTE]
 > 1. To initialize submodules in this template, do: `git submodule update --init --recursive`
@@ -14,27 +19,34 @@ A brief description of the role goes here.
 > [!IMPORTANT]
 > **Git Submodules & CI**: The dockerfiles for molecule tests are maintained in a [monorepo](https://github.com/straysheep-dev/docker-configs) as submodules for maintainability / repeatability across all roles. Because of this, the CI workflow requires `actions/checkout` to have `submodules: 'recursive'`.
 
-> [!TIP]
-> For local development, don't forget to symlink your `<namespace>.<role_name>` to one of the paths Ansible expects roles to exist under. This is the alternative to using a relative file path in `molecule/converge.yml`.
->
-> ```bash
-> ln -s ~/src/ansible-role-role_name ~/.ansible/roles/<namespace>.role_name
-> ```
-
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+None.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Each update script has its own parameters that can be adusted under `defaults/main.yml`. By default, [`update-packages.sh`](files/update-packages.sh) which handles standard system package updates, is enabled by default to run every night at 3am.
+
+```yaml
+update_cron_jobs:
+  - name: update-packages
+    script: update-packages.sh
+    enabled: true
+    user: root
+    minute: "0"
+    hour: "3"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+```
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None.
 
 Example Playbook
 ----------------
@@ -46,7 +58,7 @@ Including an example of how to use your role (for instance, with variables passe
   hosts: all
     #some_group
   roles:
-    - role: straysheep_dev.role_name
+    - role: straysheep_dev.configure_updates
 ```
 
 

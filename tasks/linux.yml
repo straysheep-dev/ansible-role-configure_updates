@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: MIT
+---
+# tasks/linux.yml file for configure_updates
+
+# Copies all of the utilities under this role's files/*.sh path to /usr/local/bin/ on the target node
+- name: "Install utility scripts"
+  ansible.builtin.copy:
+    remote_src: false
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+  with_fileglob:
+    - "*.sh"
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Ensure cron package is installed (RedHat Family)
+  ansible.builtin.dnf:
+    name: cronie
+    state: present
+    update_cache: true
+  when: "ansible_os_family in ['RedHat']"
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Ensure cron package is installed (Debian Family)
+  ansible.builtin.apt:
+    name: cron
+    state: present
+    update_cache: true
+  when: "ansible_os_family in ['Debian']"
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Ensure /etc/cron.d exists
+  ansible.builtin.file:
+    path: /etc/cron.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Configure cron jobs
+  ansible.builtin.template:
+    src: cron.j2
+    dest: "/etc/cron.d/ansible_{{ item.name }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ update_cron_jobs }}"
+  when: item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Remove disabled cron jobs
+  ansible.builtin.file:
+    path: "/etc/cron.d/ansible_{{ item.name }}"
+    state: absent
+  loop: "{{ update_cron_jobs }}"
+  when: not item.enabled
+  become: true
+  become_method: ansible.builtin.sudo

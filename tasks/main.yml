@@ -1,3 +1,7 @@
 # SPDX-License-Identifier: MIT
 ---
-# tasks file for role_name
+# tasks file for configure_updates
+
+- name: Include Linux tasks
+  ansible.builtin.include_tasks: linux.yml
+  when: ansible_system == "Linux"
