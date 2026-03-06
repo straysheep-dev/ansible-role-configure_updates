@@ -6,6 +6,7 @@
 update_cron_jobs:
   - name: update-packages
     script: update-packages.sh
+    timeout: "30m"
     enabled: true
     user: root
     minute: "0"
@@ -14,12 +15,24 @@ update_cron_jobs:
     month: "*"
     weekday: "*"
 
+  - name: reboot-logic
+    script: reboot-logic.sh
+    timeout: "5m"
+    enabled: true
+    user: root
+    minute: "0"
+    hour: "4"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
   - name: update-wazuh
+    timeout: "2h"
     script: update-wazuh.sh
     enabled: false
     user: root
     minute: "0"
-    hour: "3"
+    hour: "0"
     day: "*"
     month: "*"
     weekday: "*"

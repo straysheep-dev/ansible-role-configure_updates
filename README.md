@@ -19,6 +19,13 @@ This was chosen over using an Anisble controller to ochestrate scheduled updates
 > [!IMPORTANT]
 > **Git Submodules & CI**: The dockerfiles for molecule tests are maintained in a [monorepo](https://github.com/straysheep-dev/docker-configs) as submodules for maintainability / repeatability across all roles. Because of this, the CI workflow requires `actions/checkout` to have `submodules: 'recursive'`.
 
+> [!TIP]
+> For local development, don't forget to symlink your `<namespace>.<role_name>` to one of the paths Ansible expects roles to exist under. This is the alternative to using a relative file path in `molecule/converge.yml`.
+>
+> ```bash
+> ln -s ~/src/ansible-role-role_name ~/.ansible/roles/<namespace>.role_name
+> ```
+
 Requirements
 ------------
 
@@ -51,7 +58,7 @@ None.
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+For basic usage, which includes installing the task that updates the relevant system and automatically rebooting it if necessary, on the target hosts:
 
 ```yml
 - name: "Default Playbook"
@@ -61,6 +68,7 @@ Including an example of how to use your role (for instance, with variables passe
     - role: straysheep_dev.configure_updates
 ```
 
+For more advanced inventory-based usage, you'll want to use inventory groups, or [`host_group_vars`](https://docs.ansible.com/projects/ansible/latest/inventory_guide/intro_inventory.html#organizing-host-and-group-variables). In all cases, you'll need to replicate the entire block from [`defaults/main.yml`](./defaults/main.yml) since the tasks are expecting that list and all params to iterate over when building the cron template.
 
 License
 -------

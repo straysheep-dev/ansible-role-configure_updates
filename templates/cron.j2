@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+# Managed by Ansible, do not edit manually
+
+# File constructed using Jinja2 templating
+# https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_templating.html
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+{{ item.minute }} {{ item.hour }} {{ item.day }} {{ item.month }} {{ item.weekday }} {{ item.user }} /bin/bash timeout {{ item.timeout }} /usr/local/bin/{{ item.script }}
