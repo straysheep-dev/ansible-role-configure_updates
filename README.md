@@ -63,7 +63,7 @@ update_cron_jobs:
 
 ```
 
-There's also a task to handle automatically updating all of the components of a Wazuh all-in-one server. This can take up to 2 hours to complete, and this should always run well ahead of the general system package updates task. That task will update the Wazuh packages likely leading to breaking changes.
+There's also a task to handle automatically updating all of the components of a Wazuh all-in-one server. This can take up to 2 hours or more to complete. Always run this task well ahead of the broader update-packages task, which will update the Wazuh packages and likely result in breaking changes.
 
 ```yaml
 update_cron_jobs:
