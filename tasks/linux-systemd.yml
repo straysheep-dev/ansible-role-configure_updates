@@ -38,7 +38,7 @@
     name: "{{ item.name }}.timer"
     enabled: true
     state: started
-    masked: no
+    masked: false
   loop: "{{ update_schedules }}"
   when: item.enabled
   become: true
