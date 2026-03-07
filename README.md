@@ -34,7 +34,9 @@ None.
 Role Variables
 --------------
 
-Each update script has its own parameters that can be adusted under `defaults/main.yml`. By default, [`update-packages.sh`](files/update-packages.sh) which handles standard system package updates, is enabled by default to run every night at 3am.
+Each update script has its own parameters that can be adusted by overriding the settings in `defaults/main.yml`. A `timeout` param is included to limit these scripts to a default amount of time before "timing out" in case of failures that cause the processes to hang.
+
+By default, [`update-packages.sh`](files/update-packages.sh) which handles standard system package updates, is enabled by default to run every night at 3am. This is followed by the [`reboot-logic.sh`](files/reboot-logic.sh) task which runs at 4am by default.
 
 ```yaml
 update_cron_jobs:
@@ -44,6 +46,34 @@ update_cron_jobs:
     user: root
     minute: "0"
     hour: "3"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+  - name: reboot-logic
+    script: reboot-logic.sh
+    timeout: "5m"
+    enabled: true
+    user: root
+    minute: "0"
+    hour: "4"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+```
+
+There's also a task to handle automatically updating all of the components of a Wazuh all-in-one server. This can take up to 2 hours to complete, and this should always run well ahead of the general system package updates task. That task will update the Wazuh packages likely leading to breaking changes.
+
+```yaml
+update_cron_jobs:
+  - name: update-wazuh
+    timeout: "2h"
+    script: update-wazuh.sh
+    enabled: false
+    user: root
+    minute: "0"
+    hour: "0"
     day: "*"
     month: "*"
     weekday: "*"
@@ -68,7 +98,10 @@ For basic usage, which includes installing the task that updates the relevant sy
     - role: straysheep_dev.configure_updates
 ```
 
-For more advanced inventory-based usage, you'll want to use inventory groups, or [`host_group_vars`](https://docs.ansible.com/projects/ansible/latest/inventory_guide/intro_inventory.html#organizing-host-and-group-variables). In all cases, you'll need to replicate the entire block from [`defaults/main.yml`](./defaults/main.yml) since the tasks are expecting that list and all params to iterate over when building the cron template.
+For more advanced inventory-based usage, you'll want to use inventory groups, or [`host_group_vars`](https://docs.ansible.com/projects/ansible/latest/inventory_guide/intro_inventory.html#organizing-host-and-group-variables).
+
+> [!TIP]
+> You do not need to repeat the entirety of [`defaults/main.yml`](./defaults/main.yml) in each group variable section. The task will iterate over all items in the list of `update_cron_jobs:`. If you just want `update-packages` and `reboot-logic`, you can completely ignore and leave out the variables for the `update-wazuh` task.
 
 License
 -------
