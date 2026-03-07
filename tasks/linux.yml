@@ -16,51 +16,16 @@
   become: true
   become_method: ansible.builtin.sudo
 
-- name: Ensure cron package is installed (RedHat Family)
-  ansible.builtin.dnf:
-    name: cronie
-    state: present
-    update_cache: true
-  when: "ansible_os_family in ['RedHat']"
-  become: true
-  become_method: ansible.builtin.sudo
+# Gather facts to determine ansible_service_mgr
+- name: Gather system facts
+  ansible.builtin.gather_facts:
 
-- name: Ensure cron package is installed (Debian Family)
-  ansible.builtin.apt:
-    name: cron
-    state: present
-    update_cache: true
-  when: "ansible_os_family in ['Debian']"
-  become: true
-  become_method: ansible.builtin.sudo
+# Uses systemd if present, by default
+- name: Include systemd tasks
+  ansible.builtin.include_tasks: linux-systemd.yml
+  when: ansible_service_mgr == 'systemd'
 
-- name: Ensure /etc/cron.d exists
-  ansible.builtin.file:
-    path: /etc/cron.d
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-  become: true
-  become_method: ansible.builtin.sudo
-
-- name: Configure cron jobs
-  ansible.builtin.template:
-    src: cron.j2
-    dest: "/etc/cron.d/ansible_{{ item.name }}"
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ update_cron_jobs }}"
-  when: item.enabled
-  become: true
-  become_method: ansible.builtin.sudo
-
-- name: Remove disabled cron jobs
-  ansible.builtin.file:
-    path: "/etc/cron.d/ansible_{{ item.name }}"
-    state: absent
-  loop: "{{ update_cron_jobs }}"
-  when: not item.enabled
-  become: true
-  become_method: ansible.builtin.sudo
+# Cron is a fallback if systemd is not present
+- name: Include cron tasks
+  ansible.builtin.include_tasks: linux-cron.yml
+  when: ansible_service_mgr != 'systemd'

@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MIT
+# Managed by Ansible, do not edit manually
+
+# File constructed using Jinja2 templating
+# https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_templating.html
+
+# Systemd service overview and examples:
+# https://systemd.io/
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#%5BUnit%5D%20Section%20Options
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.time.html#Parsing%20Timestamps
+# https://wiki.archlinux.org/title/Systemd
+# https://wiki.archlinux.org/title/Systemd/Timers
+# https://wiki.archlinux.org/title/Flatpak#Automatic_updates_via_systemd
+
+[Unit]
+Description=Schedule {{ item.name }} service to run
+Documentation=https://github.com/straysheep-dev/ansible-role-configure_updates
+Wants={{ item.name }}.service
+
+[Timer]
+OnCalendar={{ item.on_calendar }}
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

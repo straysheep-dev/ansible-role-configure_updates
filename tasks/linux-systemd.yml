@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: MIT
+---
+# tasks/linux-systemd.yml file for configure_updates
+
+- name: Install systemd service files
+  ansible.builtin.template:
+    src: systemd-service.j2
+    dest: "/etc/systemd/system/{{ item.name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ update_schedules }}"
+  when: item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Install systemd timer files
+  ansible.builtin.template:
+    src: systemd-timer.j2
+    dest: "/etc/systemd/system/{{ item.name }}.timer"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ update_schedules }}"
+  when: item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+# Make systemd aware of the files we just installed
+- name: Systemd daemon-reload
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Enable the scheduled update services
+  ansible.builtin.systemd_service:
+    name: "{{ item.name }}.timer"
+    enabled: true
+    state: started
+    masked: no
+  loop: "{{ update_schedules }}"
+  when: item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+# Do this before running any disable / remove tasks, as they'll fail
+# on a system that does not have those tasks.
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+# https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/service_facts_module.html#examples
+# https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_conditionals.html#conditionals-based-on-ansible-facts
+- name: Disable the scheduled update timers
+  ansible.builtin.systemd_service:
+    name: "{{ item.name }}.timer"
+    enabled: false
+    state: stopped
+  loop: "{{ update_schedules }}"
+  when:
+    - not item.enabled
+    - (item.name + '.timer') in ansible_facts.services
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Disable the scheduled update services
+  ansible.builtin.systemd_service:
+    name: "{{ item.name }}.service"
+    enabled: false
+    state: stopped
+  loop: "{{ update_schedules }}"
+  when:
+    - not item.enabled
+    - (item.name + '.service') in ansible_facts.services
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Remove disabled service files
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.name }}.service"
+    state: absent
+  loop: "{{ update_schedules }}"
+  when: not item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+- name: Remove disabled timer files
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.name }}.timer"
+    state: absent
+  loop: "{{ update_schedules }}"
+  when: not item.enabled
+  become: true
+  become_method: ansible.builtin.sudo
+
+# Cleanup after any and all changes above
+- name: Systemd daemon-reload
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true
+  become_method: ansible.builtin.sudo

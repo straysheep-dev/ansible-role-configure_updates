@@ -27,6 +27,8 @@ galaxy_info:
   galaxy_tags:
     - administration
     - cron
+    - timers
+    - systemd
     - maintenance
     - updates
     - patching

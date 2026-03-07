@@ -2,37 +2,36 @@
 ---
 # defaults file for configure_updates
 
-# Creates a YAML list of update tasks and params we can iterate over
-update_cron_jobs:
+# Creates a YAML list of update tasks and params we can iterate over.
+# You do not need to mirror the complete list in inventory vars, only
+# the sections you need.
+update_schedules:
   - name: update-packages
     script: update-packages.sh
     timeout: "30m"
     enabled: true
     user: root
-    minute: "0"
-    hour: "3"
-    day: "*"
-    month: "*"
-    weekday: "*"
+    # systemd backend
+    on_calendar: "*-*-* 03:00:00"
+    # cron backend
+    cron_expression: "0 3 * * *"
 
   - name: reboot-logic
     script: reboot-logic.sh
     timeout: "5m"
     enabled: true
     user: root
-    minute: "0"
-    hour: "4"
-    day: "*"
-    month: "*"
-    weekday: "*"
+    # systemd backend
+    on_calendar: "*-*-* 04:00:00"
+    # cron backend
+    cron_expression: "0 4 * * *"
 
   - name: update-wazuh
     timeout: "2h"
     script: update-wazuh.sh
     enabled: false
     user: root
-    minute: "0"
-    hour: "0"
-    day: "*"
-    month: "*"
-    weekday: "*"
+    # systemd backend
+    on_calendar: "*-*-* 00:00:00"
+    # cron backend
+    cron_expression: "0 0 * * *"
