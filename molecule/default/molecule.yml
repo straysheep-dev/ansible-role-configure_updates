@@ -51,6 +51,18 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     dockerfile: docker-configs/dockerfiles-fedora/fedora-latest.Dockerfile
+#  - name: rocky-9
+#    image: rockylinux/rockylinux:9  # Rocky's "latest" tag is unique, use major versions if possible
+#    command: /sbin/init  # It's critical to include the command here so systemd is PID 1
+#    pre_build_image: false
+#    cgroupns_mode: host
+#    privileged: true
+#    tmpfs:
+#      - /run
+#      - /tmp
+#    volumes:
+#      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+#    dockerfile: docker-configs/dockerfiles-rocky/rocky-9.Dockerfile
 provisioner:
   name: ansible
   playbooks:

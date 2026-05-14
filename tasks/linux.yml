@@ -16,16 +16,16 @@
   become: true
   become_method: ansible.builtin.sudo
 
-# Gather facts to determine ansible_service_mgr
+# Gather facts to determine ansible_facts['service_mgr']
 - name: Gather system facts
   ansible.builtin.gather_facts:
 
 # Uses systemd if present, by default
 - name: Include systemd tasks
   ansible.builtin.include_tasks: linux-systemd.yml
-  when: ansible_service_mgr == 'systemd'
+  when: ansible_facts['service_mgr'] == 'systemd'
 
 # Cron is a fallback if systemd is not present
 - name: Include cron tasks
   ansible.builtin.include_tasks: linux-cron.yml
-  when: ansible_service_mgr != 'systemd'
+  when: ansible_facts['service_mgr'] != 'systemd'
