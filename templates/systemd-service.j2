@@ -14,14 +14,33 @@
 # https://wiki.archlinux.org/title/Systemd/Timers
 # https://wiki.archlinux.org/title/Flatpak#Automatic_updates_via_systemd
 
+{#
+
+  Jinja statements that evaluate to empty seem to eliminate newlines.
+
+  System unit files permit stacking of certain unit sections such as
+  After=, Before=, Wants=, Requires=, etc. These have been moved to
+  for loops to fix this and for clarity.
+
+  Documentation for Before=,After= states:
+
+  These two settings expect a space-separated list of
+  unit names. They may be specified more than once, in which case
+  dependencies for all listed names are created.
+
+#}
+
 [Unit]
 Description=Run {{ item.name }} to handle unattended updates
 Documentation=https://github.com/straysheep-dev/ansible-role-configure_updates
-After=network-online.target{% if item.after | default([]) %} {{ item.after | join(' ') }}{% endif %}
+After=network-online.target
+{% for dependency in item.after | default([]) %}
+After={{ dependency }}
+{% endfor %}
 Wants=network-online.target
-{% if item.requires | default([]) %}
-Requires={{ item.requires | join(' ') }}
-{% endif %}
+{% for requirement in item.requires | default([]) %}
+Requires={{ requirement }}
+{% endfor %}
 
 [Service]
 Type=oneshot

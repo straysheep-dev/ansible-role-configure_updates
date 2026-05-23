@@ -3,6 +3,7 @@
 # tasks/linux.yml file for configure_updates
 
 # Copies all of the utilities under this role's files/*.sh path to /usr/local/bin/ on the target node
+# TODO: make which utilties get installed conditional
 - name: "Install utility scripts"
   ansible.builtin.copy:
     remote_src: false
@@ -57,14 +58,17 @@
     is_headless: "{{ (xsessions.matched + wayland_sessions.matched) == 0 }}"
 
 # Detect Proxmox, when true, the pve-maintenance entry is auto-enabled.
-- name: Check for Proxmox VE
-  ansible.builtin.stat:
-    path: /usr/sbin/pveversion
-  register: pveversion_stat
+- name: Check for Proxmox utilities
+  ansible.builtin.find:
+    paths:
+      - /usr/bin
+      - /usr/sbin
+    patterns: "pveversion"
+  register: proxmox_util
 
 - name: Set is_proxmox fact
   ansible.builtin.set_fact:
-    is_proxmox: "{{ pveversion_stat.stat.exists }}"
+    is_proxmox: "{{ proxmox_util.matched > 0 }}"
 
 # Detect Wazuh, when true, the update-wazuh entry is auto-enabled.
 # https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/intersect_filter.html
@@ -82,3 +86,12 @@
 - name: Include cron tasks
   ansible.builtin.include_tasks: linux-cron.yml
   when: ansible_facts['service_mgr'] != 'systemd'
+
+# Print debugging information
+- name: Print node statuses
+  ansible.builtin.debug:
+    msg:
+      - "backend: {{ 'cron' if ansible_facts['service_mgr'] != 'systemd' else 'systemd' }}"
+      - "is_headless: {{ is_headless | default(false) }}"
+      - "is_proxmox: {{ is_proxmox | default(false) }}"
+      - "is_wazuh: {{ is_wazuh | default(false) }}"
