@@ -22,7 +22,9 @@
     group: root
     mode: "0644"
   loop: "{{ update_schedules }}"
-  when: item.enabled
+  when:
+    - item.enabled
+    - item.on_calendar is defined
   become: true
   become_method: ansible.builtin.sudo
 
@@ -40,7 +42,9 @@
     state: started
     masked: false
   loop: "{{ update_schedules }}"
-  when: item.enabled
+  when:
+    - item.enabled
+    - item.on_calendar is defined
   become: true
   become_method: ansible.builtin.sudo
 
@@ -58,7 +62,7 @@
     state: stopped
   loop: "{{ update_schedules }}"
   when:
-    - not item.enabled
+    - (not item.enabled) or (item.on_calendar is not defined)
     - (item.name + '.timer') in ansible_facts.services
   become: true
   become_method: ansible.builtin.sudo
@@ -89,7 +93,7 @@
     path: "/etc/systemd/system/{{ item.name }}.timer"
     state: absent
   loop: "{{ update_schedules }}"
-  when: not item.enabled
+  when: (not item.enabled) or (item.on_calendar is not defined)
   become: true
   become_method: ansible.builtin.sudo
 

@@ -20,6 +20,59 @@
 - name: Gather system facts
   ansible.builtin.gather_facts:
 
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+# /run/reboot-required is primarily on Ubuntu and missing on Debian / Proxmox.
+# needrestart provides a universal machine-readable signal on pending upgrades.
+- name: Ensure needrestart is installed (Debian Family)
+  ansible.builtin.apt:
+    name: needrestart
+    state: present
+    update_cache: true
+    #cache_valid_time: 3600
+  when: ansible_facts['os_family'] == 'Debian'
+  become: true
+  become_method: ansible.builtin.sudo
+
+# Detect display, if any.
+# We use the .desktop file as confirmation over the presence of display-manager's
+# status to reduce false positives. This can be controlled via an inventory file.
+# https://wiki.archlinux.org/title/Display_manager#Loading_the_display_manager
+# https://wiki.archlinux.org/title/Display_manager#Session_configuration
+- name: Find installed X11 sessions
+  ansible.builtin.find:
+    paths: /usr/share/xsessions
+    patterns: "*.desktop"
+  register: xsessions
+
+- name: Find installed Wayland sessions
+  ansible.builtin.find:
+    paths: /usr/share/wayland-sessions
+    patterns: "*.desktop"
+  register: wayland_sessions
+
+- name: Set is_headless fact
+  ansible.builtin.set_fact:
+    is_headless: "{{ (xsessions.matched + wayland_sessions.matched) == 0 }}"
+
+# Detect Proxmox, when true, the pve-maintenance entry is auto-enabled.
+- name: Check for Proxmox VE
+  ansible.builtin.stat:
+    path: /usr/sbin/pveversion
+  register: pveversion_stat
+
+- name: Set is_proxmox fact
+  ansible.builtin.set_fact:
+    is_proxmox: "{{ pveversion_stat.stat.exists }}"
+
+# Detect Wazuh, when true, the update-wazuh entry is auto-enabled.
+# https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/intersect_filter.html
+- name: Set is_wazuh fact
+  ansible.builtin.set_fact:
+    is_wazuh: true
+  when: ansible_facts['services'].keys() | intersect(['wazuh-manager', 'wazuh-indexer', 'wazuh-dashboard']) | length > 0
+
 # Uses systemd if present, by default
 - name: Include systemd tasks
   ansible.builtin.include_tasks: linux-systemd.yml

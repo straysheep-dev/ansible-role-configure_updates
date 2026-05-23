@@ -13,25 +13,56 @@ update_schedules:
     user: root
     # systemd backend
     on_calendar: "*-*-* 03:00:00"
+    # On Wazuh, update-packages depends on update-wazuh.service completing cleanly
+    requires: "{{ ['update-wazuh.service'] if (is_wazuh | default(false)) else [] }}"
+    after: "{{ ['update-wazuh.service'] if (is_wazuh | default(false)) else [] }}"
     # cron backend
     cron_expression: "0 3 * * *"
 
   - name: reboot-logic
     script: reboot-logic.sh
     timeout: "5m"
-    enabled: true
+    # Don't default to automatic reboots on workstations, override as needed.
+    enabled: "{{ is_headless | default(false) | bool }}"
     user: root
     # systemd backend
     on_calendar: "*-*-* 04:00:00"
+    # On Proxmox, reboot-logic depends on pve-maintenance.service completing cleanly
+    requires: "{{ ['pve-maintenance.service'] if (is_proxmox | default(false)) else [] }}"
+    after: "{{ ['pve-maintenance.service'] if (is_proxmox | default(false)) else [] }}"
     # cron backend
     cron_expression: "0 4 * * *"
 
-  - name: update-wazuh
-    timeout: "2h"
-    script: update-wazuh.sh
-    enabled: false
+  - name: pve-maintenance
+    # By defualt, this installs a .service file with no timer.
+    # pve-maintenance gets wired together with reboot-logic, so that we never reboot
+    # if VM's are not cleanly shutdown and snapshots taken. That's why the timer backends
+    # below are commented out. You can uncomment them to have updates and VM snapshots run
+    # additionally on their own schedule, but reboot-logic always invokes this task on
+    # Proxmox, meaning it will run twice. Account for this when scheduling a timer.
+    script: pve-maintenance.sh
+    timeout: "1h"
+    enabled: "{{ is_proxmox | default(false) | bool }}"
     user: root
     # systemd backend
-    on_calendar: "*-*-* 00:00:00"
+    #on_calendar: "Sun *-*-* 02:00:00"
+    #requires: []
+    #after: []
     # cron backend
-    cron_expression: "0 0 * * *"
+    #cron_expression: "0 2 * * 0"
+
+  - name: update-wazuh
+    # By defualt, this installs a .service file with no timer.
+    # update-wazuh gets wired together with update-packages, so that we never run
+    # package updates on a Wazuh server until the central components are updated
+    # successfully.
+    timeout: "2h"
+    script: update-wazuh.sh
+    enabled: "{{ is_wazuh | default(false) | bool }}"
+    user: root
+    # systemd backend
+    #on_calendar: "*-*-* 00:00:00"
+    #requires: []
+    #after: []
+    # cron backend
+    #cron_expression: "0 0 * * *"

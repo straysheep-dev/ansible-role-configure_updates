@@ -3,6 +3,7 @@
 
 # File constructed using Jinja2 templating
 # https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_templating.html
+# https://jinja.palletsprojects.com/en/latest/templates/
 
 # Systemd service overview and examples:
 # https://systemd.io/
@@ -16,8 +17,11 @@
 [Unit]
 Description=Run {{ item.name }} to handle unattended updates
 Documentation=https://github.com/straysheep-dev/ansible-role-configure_updates
-After=network-online.target
+After=network-online.target{% if item.after | default([]) %} {{ item.after | join(' ') }}{% endif %}
 Wants=network-online.target
+{% if item.requires | default([]) %}
+Requires={{ item.requires | join(' ') }}
+{% endif %}
 
 [Service]
 Type=oneshot

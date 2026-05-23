@@ -20,6 +20,7 @@ exclude_paths:
 # Process the following rules as warnings, and not fatal errors, globally
 warn_list:
   - yaml[line-length]
+  - yaml[comments]
   - package-latest
   - role-name
 #  - schema[playbook]

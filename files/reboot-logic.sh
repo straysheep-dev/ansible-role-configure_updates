@@ -36,9 +36,35 @@ then
         exit 1
     fi
 # Debian / Ubuntu
-elif [ -f /run/reboot-required ]
+elif command -v needrestart > /dev/null
+# /run/reboot-required is primarily an Ubuntu signal. Instead, we'll
+# rely on needrestart on Debian family OS's as a dependency to determine
+# when a reboot is required.
+# https://github.com/liske/needrestart/blob/master/README.batch.md
 then
-    reboot_required=true
+    KSTA=$(needrestart -b -k 2>/dev/null | awk -F': ' '/^NEEDRESTART-KSTA/{print $2}')
+    if [[ "${KSTA}" -eq "1" ]]
+    then
+        # No pending upgrade.
+        reboot_required=false
+    elif [[ "${KSTA}" -eq "2" ]] || [[ "${KSTA}" -eq "3" ]]
+    then
+        # 2 is for ABI upgrades, while 3 is for version upgrades, these
+        # are effectively the /run/reboot-required signal.
+        reboot_required=true
+    elif [[ "${KSTA}" -eq "0" ]]
+    then
+        # 0 is reserved for "unknown" or a failure to detect the kernel state.
+        echo -e "[${RED}*${RESET}] ${BOLD}needrestart failed to detect the kernel state. NEEDRESTART-KSTA: ${KSTA}${RESET}"
+        exit 1
+    else
+        echo -e "[${RED}*${RESET}] ${BOLD}Unexpected NEEDRESTART-KSTA value: ${KSTA}${RESET}"
+        exit 1
+    fi
+elif command -v apt > /dev/null
+then
+    echo -e "[${RED}*${RESET}] ${BOLD}Debian family detected but needrestart is missing.${RESET}"
+    exit 1
 fi
 
 if [ "$reboot_required" = "true" ]

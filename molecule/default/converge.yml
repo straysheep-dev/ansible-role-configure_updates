@@ -22,10 +22,30 @@
       when: ansible_facts['service_mgr'] == 'systemd'
       changed_when: false
       failed_when: systemctl_status.rc > 1
-  tasks:
+
+    # Review useful environment facts for debugging, add more as needed
     - name: Enumerate Ansible Facts
       ansible.builtin.debug:
-        # msg: "This is the effective test"
-        var: ansible_facts['system']
+        msg:
+          - "system: {{ ansible_facts['system'] }}"
+          - "os_family: {{ ansible_facts['os_family'] }}"
+          - "distribution: {{ ansible_facts['distribution'] }}"
+          - "release: {{ ansible_facts['distribution_release'] }}"
+          - "version: {{ ansible_facts['distribution_version'] }}"
+          - "pkg_mgr: {{ ansible_facts['pkg_mgr'] }}"
+          - "python_version: {{ ansible_facts['python_version'] }}"
+          - "user_id: {{ ansible_facts['user_id'] }}"
+          - "user_uid: {{ ansible_facts['user_uid'] }}"
+          - "user_gid: {{ ansible_facts['user_gid'] }}"
+          - "real_user_id: {{ ansible_facts['real_user_id'] }}"
+          - "real_group_id: {{ ansible_facts['real_group_id'] }}"
+
+# Tasks here execute after the role
+#  tasks:
+#    - name: Enumerate Ansible Facts
+#      ansible.builtin.debug:
+#        # msg: "This is the effective test"
+#        var: ansible_facts['system']
+
   roles:
     - role: straysheep_dev.configure_updates

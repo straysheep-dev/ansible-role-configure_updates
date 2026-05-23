@@ -38,7 +38,9 @@
     group: root
     mode: "0644"
   loop: "{{ update_schedules }}"
-  when: item.enabled
+  when:
+    - item.enabled
+    - item.cron_expression is defined
   become: true
   become_method: ansible.builtin.sudo
 
@@ -47,6 +49,6 @@
     path: "/etc/cron.d/ansible_{{ item.name }}"
     state: absent
   loop: "{{ update_schedules }}"
-  when: not item.enabled
+  when: (not item.enabled) or (item.cron_expression is not defined)
   become: true
   become_method: ansible.builtin.sudo
