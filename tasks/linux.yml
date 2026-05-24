@@ -75,7 +75,7 @@
 - name: Set is_wazuh fact
   ansible.builtin.set_fact:
     is_wazuh: true
-  when: ansible_facts['services'].keys() | intersect(['wazuh-manager', 'wazuh-indexer', 'wazuh-dashboard']) | length > 0
+  when: ansible_facts['services'].keys() | intersect(['wazuh-manager.service', 'wazuh-indexer.service', 'wazuh-dashboard.service']) | length > 0
 
 # Uses systemd if present, by default
 - name: Include systemd tasks
